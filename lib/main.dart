@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 void main() => runApp(new MyApp());
 
@@ -9,7 +11,7 @@ class MyApp extends StatelessWidget {
     return new MaterialApp(
       title: 'Flutter Demo',
       theme: new ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.grey,
       ),
       home: new MyHomePage(title: 'Währungsrechner'),
     );
@@ -19,7 +21,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-
   final String title;
 
   @override
@@ -27,46 +28,146 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  num inputEU = 0;
+  num outputUSD = 0;
+  num rate = 1.153;
+  String inputCurrency = 'EUR';
+  String outputCurrency = 'USD';
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
+  @override
+  void initState() {
+    http.get("https://api.exchangeratesapi.io/latest").then((response) {
+      setState(() {
+        var body = response.body;
+        var rates = json.decode(body)["rates"];
+        rate = rates["USD"];
+      });
     });
   }
 
   Widget createCurrencyWidget() {
-    return 
-       new Padding(
-         padding: EdgeInsets.fromLTRB(60.0, 0.0, 60.0, 0.0),
-       child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Row(children: <Widget>[
-            new Flexible(child: new TextField(
-              keyboardType: TextInputType.number
+    return Container(
+      decoration: new BoxDecoration(
+          gradient: LinearGradient(
+              colors: [Colors.red[300], Colors.orange[300], Colors.yellow[300],],
+              begin: FractionalOffset.topCenter,
+              end: FractionalOffset.bottomCenter)),
+      child: new Padding(
+          padding: EdgeInsets.fromLTRB(60.0, 0.0, 60.0, 0.0),
+          child: new Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                new Row(
+                  children: <Widget>[
+                    new Flexible(
+                        child: new TextField(
+                            textAlign: TextAlign.center,
+                            style: new TextStyle(
+                                fontFamily: "Roboto",
+                                fontSize: 40.0,
+                                color: Colors.black),
+                            onSubmitted: (t) => setState(() {
+                                  inputEU = num.parse(t);
+                            outputUSD = inputCurrency == 'EUR'
+                                ? inputEU * rate
+                                : inputEU / rate;
+                                }),
+                            keyboardType: TextInputType.number)),
+                    new DropdownButton<String>(
+                        value: inputCurrency,
+                        style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 40.0,
+                        ),
+                        items: <String>["EUR", "USD"].map((String value) {
+                          return new DropdownMenuItem<String>(
+                              value: value, child: new Text(value));
+                        }).toList(),
+                        onChanged: (text) {
+                          setState(() {
+                            inputCurrency = text;
+                            outputCurrency =
+                                inputCurrency == 'EUR' ? 'USD' : 'EUR';
+                            outputUSD = inputCurrency == 'EUR'
+                                ? inputEU * rate
+                                : inputEU / rate;
+                          });
+                        }),
+                  ],
+                ),
+              ])),
+    );
+  }
+
+  Widget createcurrencywidget2() {
+    return Container(
+      decoration: new BoxDecoration(
+        color: Colors.grey,
+      ),
+      child: Container(
+        decoration: new BoxDecoration(
+            gradient: LinearGradient(
+                colors: [
+                  
+              Colors.yellow[300],
+              Colors.orange[300],
+            
+              Colors.red[300],
+            ],
+                begin: FractionalOffset.topCenter,
+                end: FractionalOffset.bottomCenter)),
+        child: new Padding(
+            padding: EdgeInsets.fromLTRB(60.0, 0.0, 60.0, 0.0),
+            child: Container(
+              alignment: Alignment.centerLeft,
+              child: new Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    new Row(
+                      children: <Widget>[
+                        new Flexible(
+                            fit: FlexFit.tight,
+                            child: new Text(
+                              outputUSD.toStringAsFixed(2),
+                              textAlign: TextAlign.center,
+                              style: new TextStyle(
+                                fontFamily: "Roboto",
+                                fontSize: 40.0,
+                              ),
+                            )),
+                        new Text(outputCurrency,
+
+                        style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 40.0,
+                          ))
+                    
+
+                       
+                      ],
+                    )
+                  ]),
             )),
-            new Text(
-              'EUR',
-            ),
-          ],
-        )]
-        ));
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(
-        title: new Text(widget.title),
-      ),
-      body: new Center(
-        child: createCurrencyWidget(),
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.add),
+      body: Column(
+        children: <Widget>[
+          Flexible(
+            child: new Center(
+              child: createCurrencyWidget(),
+            ),
+          ),
+          Flexible(
+            child: new Center(
+              child: createcurrencywidget2(),
+            ),
+          ),
+        ],
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
