@@ -1,4 +1,4 @@
-package com.example.waehrungsrechner;
+package com.bogymgtt.tim.waehrungsrechner;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
