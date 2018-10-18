@@ -1,4 +1,4 @@
-package com.example.waehrungsrechner;
+package com.bogymgtt.luca.waehrungsrechner;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
